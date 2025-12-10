@@ -1,0 +1,77 @@
+DATA VISUALIZATION WITH SEABORN
+
+Lab Tasks
+Q1.
+Write Python code to load the “tips” dataset and display:
+•	The first 5 rows
+•	The total number of rows and columns
+•	The summary statistics of numerical columns
+Code:
+
+!pip install seaborn matplotlib pandas numpy
+import seaborn as sns
+
+tips = sns.load_dataset('tips')
+print("first 5 rows of the dataset:")
+tips.head()
+print("rows and column:",tips.shape)
+print(tips.describe)
+ 
+Q2.
+Create a histogram with KDE for the tip column using Seaborn.
+Add appropriate axis labels and a title: “Distribution of Tip Amounts”.
+Code:
+
+!pip install seaborn matplotlib pandas numpy
+import seaborn as sns
+
+sns.histplot(data=tips, x='tip', kde=True, color='skyblue')
+plt.title('Distribution of Tip Amounts')
+plt.xlabel('Tip ($)')
+plt.ylabel('Count')
+plt.show() 
+ 
+Q3.
+Use Seaborn to draw a scatter plot showing the relationship between total_bill and tip,
+colored (hue) by time and styled by sex.
+Add a title and labels for both axes.
+Code:
+
+!pip install seaborn matplotlib pandas numpy
+import seaborn as sns
+
+sns.scatterplot(data=tips, x='total_bill', y='tip', hue='time', style='sex',color='blue')
+plt.title('Total Bill vs Tip by Time and Gender')
+plt.xlabel('Total Bill ($)',fontsize=15)
+plt.ylabel('Tip ($)',fontsize=15)
+plt.grid('true',alpha=0.9)
+plt.show()
+ 
+Q4.
+Draw a box plot to compare the total_bill across different days,
+separated by smoker status (hue='smoker').
+Add a suitable title and axis labels.
+Code:
+
+!pip install seaborn matplotlib pandas numpy
+import seaborn as sns
+
+sns.boxplot(data=tips, x='day', y='total_bill', hue='smoker')
+plt.title('Total Bill by Day and Smoker Status')
+plt.xlabel('Day')
+plt.ylabel('Total Bill ($)')
+plt.show()
+ 
+Q5.
+Generate a correlation heatmap for the numeric columns (total_bill, tip, size)
+with annotations and a color map of your choice.
+Add a title: “Correlation Between Numerical Variables”.
+Code:
+
+!pip install seaborn matplotlib pandas numpy
+import seaborn as sns
+
+corr = tips[['total_bill','tip','size']].corr()
+sns.heatmap(corr, annot=True, cmap='coolwarm')
+plt.title('Correlation Between Numerical Variables')
+plt.show()
