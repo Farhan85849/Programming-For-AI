@@ -1,0 +1,109 @@
+Exploratory Data Analysis (EDA) with Pandas
+
+Labs Tasks:
+Task 1: Data Overview
+Tasks:
+•	Load data and display first 10 rows.
+•	Show shape, columns, and data types.
+•	Generate statistical summaries.
+•	Count unique cities.
+
+import pandas as pd
+import numpy as np
+	
+df = pd.read_csv('startup_funding.csv', thousands=',')
+	
+print(df.head(10))
+print(df.shape)
+print(df.columns)
+print(df.dtypes)
+print(df.describe(include='all'))
+print("Unique Cities:", df['CityLocation'].nunique())
+ 
+Task 2: Data Cleaning
+•	Identify missing values.
+•	Fill numeric nulls with median.
+•	Fill categorical nulls with "Unknown".
+•	Remove duplicates.
+
+print(df.isnull().sum())
+df['AmountInUSD'] = df['AmountInUSD'].fillna(df['AmountInUSD'].median())
+df[['CityLocation', 'InvestmentType', 'InvestorsName']] = df[['CityLocation', 'InvestmentType', 'InvestorsName']].fillna('Unknown')
+df.drop_duplicates(inplace=True)
+ 
+Task 3: Data Standardization
+•	Fix inconsistent text (e.g., 'SeedFunding' → 'Seed Funding').
+•	Convert city names to lowercase.
+•	Count startups with "Ventures" in investor names.
+
+df['InvestmentType'] = df['InvestmentType'].str.replace('SeedFunding', 'Seed Funding')
+df['CityLocation'] = df['CityLocation'].str.lower()
+ventures_count = df[df['InvestorsName'].str.contains('Ventures', case=False, na=False)].shape[0]
+print("Startups with 'Ventures' in InvestorsName:", ventures_count)
+ 
+Task 4: Date Analysis
+•	Convert Date column to datetime.
+•	Extract Year, Month, and Day.
+•	Find the month with most investments.
+•	Compute average investment per year.
+
+df['Date'] = df['Date'].astype(str).str.replace('//', '/').str.replace('.', '/')
+df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
+df['Year'] = df['Date'].dt.year
+df['Month'] = df['Date'].dt.month
+df['Day'] = df['Date'].dt.day
+print("Month with most investments:", df['Month'].value_counts().idxmax())
+print("Average investment per year:\n", df.groupby('Year')['AmountInUSD'].mean())
+ 
+Task 5: Advanced Filtering
+•	Find startups in Bangalore with funding > ₹5,000,000.
+•	Filter startups in top 3 cities with seed funding.
+•	Top 10 startups by funding.
+•	Count investments by industry.
+•	Average funding by investment type.
+
+bangalore_high = df[(df['CityLocation'] == 'bangalore') & (df['AmountInUSD'] > 5000000)]
+print(bangalore_high[['StartupName', 'AmountInUSD']])
+top3 = df['CityLocation'].value_counts().head(3).index
+seed_top3 = df[(df['CityLocation'].isin(top3)) & (df['InvestmentType'] == 'Seed Funding')]
+print(seed_top3[['StartupName', 'CityLocation']])
+print(df.nlargest(10, 'AmountInUSD')[['StartupName', 'AmountInUSD']])
+print(df['IndustryVertical'].value_counts())
+print(df.groupby('InvestmentType')['AmountInUSD'].mean())
+ 
+Task 6: Data Manipulation
+•	Create new column FundingCategory:
+o	Small: < ₹500,000
+o	Medium: ₹500,000–₹5,000,000
+o	Large: > ₹5,000,000
+•	Drop unnecessary columns (SNo, Remarks).
+•	Sort by AmountInUSD.
+•	Filter “Technology” startups.
+•	Compute funding share by city.
+
+def category(x):
+    if x < 500000: return 'Small'
+    elif x <= 5000000: return 'Medium'
+    else: return 'Large'
+df['FundingCategory'] = df['AmountInUSD'].apply(category)
+df.drop(columns=['SNo', 'Remarks'], errors='ignore', inplace=True)
+df = df.sort_values(by='AmountInUSD', ascending=False)
+tech_df = df[df['IndustryVertical'].str.contains('Technology', case=False, na=False)]
+city_share = df.groupby('CityLocation')['AmountInUSD'].sum() / df['AmountInUSD'].sum() * 100
+print("Funding share by city:\n", city_share)
+ 
+Task 7: Grouping and Aggregation
+•	Group by CityLocation:
+o	Total, average funding, and startup count.
+•	Group by InvestmentType and IndustryVertical.
+•	Identify top 5 investors.
+•	Create pivot table: Industry vs Investment Type (startup counts).
+
+city_stats = df.groupby('CityLocation').agg({'AmountInUSD': ['sum', 'mean', 'count'], 'StartupName': 'nunique'})
+print(city_stats.head())
+inv_ind = df.groupby(['InvestmentType', 'IndustryVertical']).agg({'AmountInUSD': 'sum', 'StartupName': 'count'})
+print(inv_ind.head())
+top_investors = df['InvestorsName'].value_counts().head(5)
+print("Top 5 Investors:\n", top_investors)
+pivot = df.pivot_table(index='IndustryVertical', columns='InvestmentType', values='StartupName', aggfunc='count', fill_value=0)
+print(pivot.head())
